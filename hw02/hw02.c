@@ -72,7 +72,7 @@ int main(void)
 		result = RDSearch(data[N/2], data, N); // search for the middle one
 	}
 	t = (GetTime() - t) / R;    			// calculate CPU time / iteration
-	printf("Random search worse-case CPU time: %e\n", t);// result
+	printf("Random-direction search worse-case CPU time: %e\n", t);// result
 	
 	return 0;
 }
@@ -137,15 +137,13 @@ int RDSearch(char *word, char **list, int n) 	// Random-direction Search
 	int i, j;
 	j = rand() % 2;
 	if (j == 1) {
-//		word = list[n-1];					// for worst-case scenario
 		for (i = 1; i < n; i++) {				// forward search
 			if (list[i] == word) {
 				return i;
 			}
 		}
 	}else{
-//		word = list[0];						// for worst-case scenario
-		for (i == n - 1; i >= 0; i--) {			// backward search
+		for (i = n - 1; i >= 0; i--) {			// backward search
 			if (list[i] == word) {
 				return i;
 			}
