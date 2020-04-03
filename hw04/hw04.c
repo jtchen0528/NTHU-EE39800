@@ -33,6 +33,8 @@ int main(void)
 
 	readGraph();                			// read input graph
 
+    printf("%d, %d,  ", V, E);
+
 	t0 = GetTime();              			// initialize time counter
 	for (i = 0; i < R; i++) {               // Connect1 testing
         Connect1();
