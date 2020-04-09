@@ -51,9 +51,9 @@ int main(void)
 	for (i = 0; i < R; i++) {               // Connect1 testing
         ans = MaxSubArray(data, 0, N-1);
     }
-    if (ans.low != 0){
-        ans.low--;
-    }
+//    if (ans.low != 0){
+//        ans.low--;
+//    }
     printf("Divide and Conquer: time %e s\n", (GetTime() - t) / R);
     printf("  Buy: %d/%d/%d at %g\n", data[ans.low].year, data[ans.low].month, data[ans.low].day, data[ans.low].price);
     printf("  Sell: %d/%d/%d at %g\n", data[ans.high].year, data[ans.high].month, data[ans.high].day, data[ans.high].price);
@@ -169,8 +169,7 @@ MaxArray MaxSubArrayXB(STKprice *A, int begin, int mid, int end)
     lsum = 0.0;
     sum = 0.0;
     
-//    sum = sum - A[begin].change;
-    for (i = mid; i >= begin; i--) {
+    for (i = mid; i > begin; i--) {
         sum = sum + A[i].change;
         if (sum > lsum) {
             lsum = sum;
@@ -182,7 +181,6 @@ MaxArray MaxSubArrayXB(STKprice *A, int begin, int mid, int end)
     high = mid + 1;
     sum = 0.0;
 
-//    sum = sum - A[mid + 1].change;
     for (i = mid + 1; i <= end; i++) {
         sum = sum + A[i].change;
         if (sum > rsum) {
@@ -191,7 +189,7 @@ MaxArray MaxSubArrayXB(STKprice *A, int begin, int mid, int end)
         }
     }
 
-    ans.low = low;
+    ans.low = low - 1;
     ans.high = high;
     ans.change = lsum + rsum;
     return ans;
