@@ -1,4 +1,4 @@
-// EE3980 HW05 Trading Stock
+// EE3980 HW05 Trading Stock, II
 // 106061146, Jhao-Ting, Chen
 // 2020/04/08
 
@@ -27,7 +27,8 @@ double GetTime(void);           			// get local time in seconds
 MaxArray MaxSubArrayBF(STKprice *A, int N);				// 3 test algorithms
 MaxArray MaxSubArray(STKprice *A, int begin, int end);
 MaxArray MaxSubArrayXB(STKprice *A, int begin, int mid, int end);
-
+MaxArray MaxSubArrayBF2(STKprice *A, int N);				// 3 test algorithms
+MaxArray MaxSubArrayN(STKprice *A, int N);
 
 int main(void)
 {
@@ -60,6 +61,29 @@ int main(void)
 	printf("  Sell: %d/%d/%d at %g\n", data[ans.high].year, 
 			data[ans.high].month, data[ans.high].day, data[ans.high].price);
 	printf("  Earning: %g per share.\n", ans.change);
+
+	t = GetTime();							// initialize timer			
+	ans = MaxSubArrayBF2(data, N);
+   
+	printf("Brute-force N^2 approach: time %e s\n", (GetTime() - t));	// result
+	printf("  Buy: %d/%d/%d at %g\n", data[ans.low].year, data[ans.low].month,
+			data[ans.low].day, data[ans.low].price);
+	printf("  Sell: %d/%d/%d at %g\n", data[ans.high].year, 
+			data[ans.high].month, data[ans.high].day, data[ans.high].price);
+	printf("  Earning: %g per share.\n", ans.change);
+	
+    t = GetTime();              			// initialize time counter
+	for (i = 0; i < R; i++) {               // Connect1 testing
+        ans = MaxSubArrayN(data, N);
+    }
+
+	printf("N: time %e s\n", (GetTime() - t) / R);
+	printf("  Buy: %d/%d/%d at %g\n", data[ans.low].year, data[ans.low].month,
+			data[ans.low].day, data[ans.low].price);
+	printf("  Sell: %d/%d/%d at %g\n", data[ans.high].year, 
+			data[ans.high].month, data[ans.high].day, data[ans.high].price);
+	printf("  Earning: %g per share.\n", ans.change);
+
 
 	
 	return 0;
@@ -198,4 +222,51 @@ MaxArray MaxSubArrayXB(STKprice *A, int begin, int mid, int end)
 	ans.high = high;
 	ans.change = lsum + rsum;			// overall sum
 	return ans;
+}
+
+MaxArray MaxSubArrayBF2(STKprice *A, int N)
+{
+	double max = 0;					// initialize
+	double sum;
+	int low = 0;
+	int high = N - 1;
+	int j, k;
+
+    MaxArray ans;
+
+	for (j = 0; j < N; j++) {		// Try all possible ranges: A[j : k].
+		for (k = j; k < N; k++) {
+			sum = A[k].price - A[j].price;
+			if (sum > max) {			// Record the maximum value and range
+				max = sum;
+				low = j;
+				high = k;
+			}
+		}
+	}
+	ans.low = low;
+	ans.high = high;
+	ans.change = max;
+	return ans;
+}
+
+MaxArray MaxSubArrayN(STKprice *A, int N)
+{
+    double minprice = 1000000.0;
+    double maxprofit = 0.0;
+    MaxArray ans;
+    int i, low, high;
+    for (i = 0; i < N; i++){
+        if (A[i].price < minprice) {
+            minprice = A[i].price;
+            low = i;
+        } else if (A[i].price - minprice > maxprofit) {
+            maxprofit = A[i].price - minprice;
+            high = i;
+        }
+    } 
+    ans.low = low;
+    ans.high = high;
+    ans.change = maxprofit;
+    return ans;
 }
