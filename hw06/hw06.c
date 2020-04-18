@@ -62,10 +62,12 @@ int main(void)
 			data[ans.high].month, data[ans.high].day, data[ans.high].price);
 	printf("  Earning: %g per share.\n", ans.change);
 
-	t = GetTime();							// initialize timer			
-	ans = MaxSubArrayBF2(data, N);
+	t = GetTime();              			// initialize time counter
+	for (i = 0; i < R; i++) {               // Connect1 testing
+	    ans = MaxSubArrayBF2(data, N);
+    }
    
-	printf("Brute-force N^2 approach: time %e s\n", (GetTime() - t));	// result
+	printf("Brute-force #2 approach: time %e s\n", (GetTime() - t) / R);	// result
 	printf("  Buy: %d/%d/%d at %g\n", data[ans.low].year, data[ans.low].month,
 			data[ans.low].day, data[ans.low].price);
 	printf("  Sell: %d/%d/%d at %g\n", data[ans.high].year, 
@@ -77,7 +79,7 @@ int main(void)
         ans = MaxSubArrayN(data, N);
     }
 
-	printf("N: time %e s\n", (GetTime() - t) / R);
+	printf("Search Extreme Values approach: time %e s\n", (GetTime() - t) / R);
 	printf("  Buy: %d/%d/%d at %g\n", data[ans.low].year, data[ans.low].month,
 			data[ans.low].day, data[ans.low].price);
 	printf("  Sell: %d/%d/%d at %g\n", data[ans.high].year, 
@@ -252,21 +254,28 @@ MaxArray MaxSubArrayBF2(STKprice *A, int N)
 
 MaxArray MaxSubArrayN(STKprice *A, int N)
 {
-    double minprice = 1000000.0;
-    double maxprofit = 0.0;
+    double minprice = 0.0;
+    double sum = 0.0;
     MaxArray ans;
-    int i, low, high;
+    int i, low1, low2, high;
+    for (i = 0; i < N; i++){
+        if ( A[i].price > minprice) {
+            minprice = A[i].price;
+        }
+    }
+
     for (i = 0; i < N; i++){
         if (A[i].price < minprice) {
             minprice = A[i].price;
-            low = i;
-        } else if (A[i].price - minprice > maxprofit) {
-            maxprofit = A[i].price - minprice;
+            low2 = i;
+        } else if (A[i].price - minprice > sum) {
+            sum = A[i].price - minprice;
+            low1 = low2;
             high = i;
         }
     } 
-    ans.low = low;
+    ans.low = low1;
     ans.high = high;
-    ans.change = maxprofit;
+    ans.change = sum;
     return ans;
 }
