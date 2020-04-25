@@ -8,159 +8,136 @@
 #include <sys/time.h>
 
 struct node{
-	char *data;
-    int root;
+	int data;
 	struct node *next;
 };
 typedef struct node Node;
 
+char **NameList;
 Node **Connect;
 Node **ConnectT;
 Node *steps;
 
-int N, M, time, sub = 0;										// # of stock shares
+int N, M, time, sub = 0;					// # of stock shares
 
-int *p, *v, *d, *f, *l;
+int *v, *f, *l;
 
 void readInput(void);           			// read all inputs
 void printInput(void);                     	// print Input
 double GetTime(void);           			// get local time in seconds
-void DFS_call(Node **G, int *z);
-void DFS_d(Node **G, int i);
-void SCC(void);
+void DFS_call(Node **G);			// call function for DFS
+void DFS_d(Node **G, int i);				// Depth First search
+void SCC(void);								// Strongly Connected Components
 
 int main(void)
 {
-	int i, j, k;             						// loop index
+	int i, j, k;             				// loop index
 	double t;								// record CPU time
-	
-	readInput();                			// read input graph
-	printf("N = %d M = %d", N, M);
-    //printInput();
-    t = GetTime();
-    SCC();
-    t = GetTime() - t;
+	Node *n;								// node to go through subgroups
 
-    Node *n;
-    n = steps;
-    i = 0;
-    k = 1;
-    printf(" Subgroup = %d CPU time = %e\n", sub, t);
-    while(n->next != NULL){
-        printf("  Subgroup %d: ", k);
-        for(j = 0; j < (n->root - n->next->root - 1); j++){
-            printf("%s " , Connect[f[i]]->data);
-            i++;
-        }
-        printf("%s" , Connect[f[i]]->data);
-        i++;
-        printf("\n");
-        k++;
-        n = n->next;
-    }
-    return 0;
+	readInput();                			// read input graph
+
+//	printInput();
+	
+	printf("N = %d M = %d", N, M);			// print V & E num	
+	t = GetTime();							// Get CPU time
+	SCC();									// find SCC groups
+	t = GetTime() - t;						// Calculate CPU runtime
+	
+	n = steps;								// Initialize 
+	i = 0;
+	k = 1;
+	printf(" Subgroup = %d CPU time = %g\n", sub, t);	// print result
+	
+	while(n->next != NULL){					// go through f[i] according to travel order
+		printf("  Subgroup %d: ", k);		// each n is a subgroup
+		for(j = 0; j < (n->data - n->next->data - 1); j++){
+			printf("%s " , NameList[f[i]]);
+			i++;
+		}
+		printf("%s" , NameList[f[i]]);
+		i++;
+		printf("\n");
+		k++;
+		n = n->next;
+	}
+	
+	return 0;
 }
 
 void readInput(void)            			    // read all inputs
 {
-	int i, j, len, len2;								// for looping and dynamic store   
-    char str[15], str2[15];
+	int i, j, len, end;								// for looping and dynamic store   
+	char str[15], str2[15];						// storing Chinese names
 
 	scanf("%d %d\n", &N, &M);					// read # of Vertices and Edges
 
-    Connect = (Node **)calloc(N, sizeof(Node *));
-    ConnectT = (Node **)calloc(N, sizeof(Node *));
+	Connect = (Node **)calloc(N, sizeof(Node *));	// open space for all needed arrays
+	ConnectT = (Node **)calloc(N, sizeof(Node *));
+	NameList = (char **)calloc(N, sizeof(char *));
 	v = (int *)calloc(M, sizeof(int));
 	f = (int *)calloc(M, sizeof(int));
 	l = (int *)calloc(M, sizeof(int));
 
-	for (i = 0; i < N; i++) {                   // Store shares in data
-        scanf("%s", str);	// read shares
-        len = strlen(str);
-        Connect[i] = (Node *)calloc(1, sizeof(Node));
-        Connect[i]->data = (char *)calloc(len + 1, sizeof(char));
-        ConnectT[i] = (Node *)calloc(1, sizeof(Node));
-        ConnectT[i]->data = (char *)calloc(len + 1, sizeof(char));
-        for (j = 0; j < len; j++){
-            Connect[i]->data[j] = str[j];
-            ConnectT[i]->data[j] = str[j];
-        }
-        Connect[i]->next = NULL;
-        Connect[i]->data[j] = '\0';
-        Connect[i]->root = i;
-        ConnectT[i]->next = NULL;
-        ConnectT[i]->data[j] = '\0';
-        ConnectT[i]->root = i;
-    }
+	for (i = 0; i < N; i++) {                   // Store Chinese names in NameList
+		scanf("%s", str);						// read Chinese names
+		len = strlen(str);
+		Connect[i] = (Node *)calloc(1, sizeof(Node));			// store adjacent list
+		ConnectT[i] = (Node *)calloc(1, sizeof(Node));
+		NameList[i] = (char *)calloc(len + 1, sizeof(char));	// store names
+		for (j = 0; j < len; j++){				
+			NameList[i][j] = str[j];
+		}
+		Connect[i]->next = NULL;
+		Connect[i]->data = i;
+		ConnectT[i]->next = NULL;
+		ConnectT[i]->data = i;
+		NameList[i][j] = '\0';
+	}
 	
-    for (i = 0; i < M; i++) {                   // Store shares in data
-        
-        Node *newnode, *newnode2, *p;
+	for (i = 0; i < M; i++) {                   // Store connections
+		Node *newnode, *newnode2, *p;			// Initialize connection nodes		
+		end = 0;								// iteration terminator
 
-        scanf("%s -> %s", str, str2);	// read shares
-        len = strlen(str);
-        len2 = strlen(str2);
-        newnode = (Node *)calloc(1, sizeof(Node));
-        newnode->data = (char *)calloc(len2 + 1, sizeof(char));
-        newnode->next = NULL;
-        newnode2 = (Node *)calloc(1, sizeof(Node));
-        newnode2->data = (char *)calloc(len + 1, sizeof(char));
-        newnode2->next = NULL;
-        for (j = 0; j < len; j++) {
-            newnode->data[j] = str2[j];
-        }
-        newnode->data[j] = '\0';
-        for (j = 0; j < len2; j++) {
-            newnode2->data[j] = str[j];
-        }
-        newnode2->data[j] = '\0';
-        for (j = 0; j < N; j++) {
-            if (strcmp(Connect[j]->data, str2) == 0) {
-                newnode->root = j;
-            }
-            if (strcmp(ConnectT[j]->data, str) == 0) {
-                newnode2->root = j;
-            }
-        }
-        for (j = 0; j < N; j++) {
-            if (strcmp(Connect[j]->data, str) == 0) {
+		scanf("%s -> %s", str, str2);			// read connection pairs
+		newnode = (Node *)calloc(1, sizeof(Node));		// open spaces
+		newnode->next = NULL;
+		newnode2 = (Node *)calloc(1, sizeof(Node));
+		newnode2->next = NULL;
+		for (j = 0; end == 0; j++) {			// search for orders in NameList
+			if (strcmp(NameList[j], str2) == 0) {
+				newnode->data = j;				// store index
                 p = Connect[j];
-                while (p->next != NULL) {
-                    p = p->next;
-                }
-                p->next = newnode;
-            }
-            if (strcmp(ConnectT[j]->data, str2) == 0) {
-                p = ConnectT[j];
-                while (p->next != NULL) {
-                    p = p->next;
-                }
+				newnode2->next = p->next;
                 p->next = newnode2;
+				end = 1;
+			}
+		}
+		end = 0;
+		for (j = 0; end == 0; j++) {
+            if (strcmp(NameList[j], str) == 0) {
+                newnode2->data = j;
+                p = ConnectT[j];
+				newnode->next = p->next;
+				p->next = newnode;
+				end = 1;
             }
         }
+		end = 0;
     }
 }
 
-void printInput(void)                          // print stock list
+void printInput(void)                          // print adjacent list
 {
     int i;
     Node *p;
 
 	for (i = 0; i < N; i++) {
         p = Connect[i];
-        printf("%s%d", p->data, p->root);
+        printf("%d", p->data);
         while (p->next != NULL) {
             p = p->next;
-            printf(" -> %s%d", p->data, p->root);
-        }
-        printf("\n");
-    }
-	for (i = 0; i < N; i++) {
-        p = ConnectT[i];
-        printf("%s%d", p->data, p->root);
-        while (p->next != NULL) {
-            p = p->next;
-            printf(" -> %s%d", p->data, p->root);
+            printf(" -> %d", p->data);
         }
         printf("\n");
     }
@@ -174,63 +151,63 @@ double GetTime(void)					// demonstration code from 1.1.3
 	return tv.tv_sec + 1e-6 * tv.tv_usec;
 }
 
-void DFS_call(Node **G, int *z)
+void DFS_call(Node **G)
 {
-    int i;
-    steps = NULL;
-    Node *newtime;
+    int i;							// Initialize loop index
+    Node *newtime;					// store travel orders
+    
+	sub = 0;						// initialize subgroup num
+	steps = NULL;					// initialize steps
     newtime = (Node *)calloc(1, sizeof(Node));
-    newtime->root = 0;
+    newtime->data = 0;
     newtime->next = steps;
     steps = newtime;
-    for (i = 0; i < N; i++) {
+    
+	for (i = 0; i < N; i++) {
         v[i] = 0;
         f[i] = 0;
     }
     time = 0;
     for (i = 0; i < N; i++) {
-        if (v[z[i]] == 0) {
-            DFS_d(G, z[i]);
-            Node *newtime;
+        if (v[l[i]] == 0) {			// if z[i] is not visited
+            DFS_d(G, l[i]);			// DFS z[i] in G
+            Node *newtime;			// store travel times
             newtime = (Node *)calloc(1, sizeof(Node));
-            newtime->root = time;
+            newtime->data = time;
             newtime->next = steps;
-            steps = newtime;
-            sub++;
+			steps = newtime;
+			sub++;					// subgroup num + 1
         }
     }
 }
 
 void DFS_d(Node **G, int i)
 {
-    Node *n;
-    int w;
+    Node *n;						// travel node
     
-    v[i] = 1;
-    n = G[i]->next;
+    v[i] = 1;						// v[i] is traveling
+    n = G[i]->next;					// initialize n
     while (n != NULL) {
-        w = n->root;
-        if (v[w] == 0) {
-            DFS_d(G, w);
+        if (v[n->data] == 0) {		// if vertice adjacents to i is not visited
+            DFS_d(G, n->data);		// DFS that vertice
         }
-        n = n->next;
+        n = n->next;				// next vertice adjacents to i
     }
 
-    v[i] = 2;
-    f[N - 1 - time] = i;
-    time++;
+    v[i] = 2;						// i visited
+    f[N - 1 - time] = i;			// store travel orders
+    time++;							// travel order ++
 }
 
 void SCC(void)
 {
     int i;
-    for (i = 0; i < N; i++) {
+    for (i = 0; i < N; i++) {		// initialize graph's travel order
         l[i] = i;
     }
-    DFS_call(Connect, l);
-    for (i = 0; i < N; i++){
+    DFS_call(Connect);			// do DFS on Connect
+    for (i = 0; i < N; i++){		// initialize travel order
         l[i] = f[i];
     }
-    DFS_call(ConnectT, l);
-    sub--;
+    DFS_call(ConnectT);			// do DFS on ConnectT
 }
