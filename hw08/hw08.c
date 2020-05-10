@@ -7,25 +7,24 @@
 #include <string.h>
 #include <sys/time.h>
 
-typedef struct sCourse{
+typedef struct sCourse{						// Data Structure for courses
 	int credict, student;
-	double ratio;
 	char *id, *time, *name;
 } Course;
 
-int N, *order;
-Course *Clist;
-int table[5][13] = {0};
+int N;										// # of courses
+int *order;									// sorting order
+Course *Clist;								// Course List
+int table[5][13] = {0};						// Weekly Schedule
 
 void readInput(void);           			// read all inputs
 void printInput(void);                     	// print Input
-void printTable(void);
-double GetTime(void);           			// get local time in seconds
-double priority(Course a);
-void insertionSort(int arr[]);
-void getCourseTime(char *d, char *n);
-int addCourse(Course c);
-void GreedyCourse(void);
+void printTable(void);						// print Weekly Schedule
+double priority(Course a);					// Course's weight
+void insertionSort(int arr[]);				// Insertion Sort
+void getCourseTime(char *d, char *n);		// convert M, T, W, R, F to int
+int addCourse(Course c);	// check if time slot is taken and add course to schedule
+void GreedyCourse(void);					// Greedy method to find optimal schedule
 
 int main(void)
 {
@@ -36,15 +35,15 @@ int main(void)
 
 void readInput(void)            			    // read all inputs
 {
-	int i, j, Cred, Stu;
+	int i, j, Cred, Stu;						// Initialize
 	char ID[15], Time[15], Name[100];
 
 	scanf("%d\n", &N);
-	Clist = (Course *)calloc(N, sizeof(Course));
-	order = (int *)calloc(N, sizeof(int));
+	Clist = (Course *)calloc(N, sizeof(Course));	// open space for Course List
+	order = (int *)calloc(N, sizeof(int));			// open space for course order
 	for (i = 0; i < N; i++) {
 		scanf("%s %d %d %s %[^\n]", ID, &Cred, &Stu, Time, Name);
-		Clist[i].credict = Cred;
+		Clist[i].credict = Cred;					// store each course element
 		Clist[i].student = Stu;
 		Clist[i].id = (char *)calloc(strlen(ID) + 1, sizeof(char));
 		Clist[i].time = (char *)calloc(strlen(Time) + 1, sizeof(char));
@@ -61,7 +60,6 @@ void readInput(void)            			    // read all inputs
 			Clist[i].name[j] = Name[j];
 		}
 		Clist[i].name[j] = '\0';
-		Clist[i].ratio = (double)Cred/((double)strlen(Time) / 2);
 		order[i] = i;
 	}
 }
@@ -70,11 +68,11 @@ void printInput(void)                          // print adjacent list
 {
     int i;
 	for (i = 0; i < N; i++) {
-		printf("%d %s %d %d %g %s %s\n", i, Clist[i].id, Clist[i].credict, Clist[i].student, Clist[i].ratio, Clist[i].time, Clist[i].name);
+		printf("%d %s %d %d %s %s\n", i, Clist[i].id, Clist[i].credict, Clist[i].student, Clist[i].time, Clist[i].name);
 	}
 }
 
-void printTable(void)
+void printTable(void)							// print weekly schedule
 {
 	int i, j;
 	char day[5] = {'M', 'T', 'W', 'R', 'F'};
@@ -90,15 +88,7 @@ void printTable(void)
 	}
 }
 
-double GetTime(void)					// demonstration code from 1.1.3
-{
-	struct timeval tv;
-
-	gettimeofday(&tv, NULL);
-	return tv.tv_sec + 1e-6 * tv.tv_usec;
-}
-
-void getCourseTime(char *d, char *n)
+void getCourseTime(char *d, char *n)		// convert course time to integers
 {
 	char day, num;
 	if (*d == 'M') day = '0';
@@ -123,7 +113,7 @@ void getCourseTime(char *d, char *n)
 	*n = num;
 }
 
-double priority(Course a)
+double priority(Course a)				// generate priority for each course for sorting
 {
 	int i, day, num;
 	char d, n;
@@ -132,14 +122,14 @@ double priority(Course a)
 		d = a.time[i * 2];
 		n = a.time[i * 2 + 1];
 		getCourseTime(&d, &n);
-		day = 5 - d - '0';
-		num = 13 - n - '0';
+		day = 1 + d - '0';
+		num = 1 + n - '0';
 	}
-
-	return a.ratio * 5 + (double)a.credict + (double) day / 5 + (double) num / 13;
+										// course ratio * 5 + credict + time priority
+	return (double)a.credict/((double)strlen(a.time) / 2) * 5 + (double)a.credict + (double) day / 5 + (double) num / 13;
 }
 
-void insertionSort(int arr[]) 
+void insertionSort(int arr[])					// simple insertion sort with designed priority
 { 
     int i, j, pos;
 	Course a;
@@ -147,7 +137,7 @@ void insertionSort(int arr[])
 		a = Clist[arr[i]];
 		pos = arr[i];
         j = i - 1;
-        while ((j >= 0) && priority(Clist[arr[j]]) < priority(a)) {
+        while ((j >= 0) && priority(Clist[arr[j]]) < priority(a)) {		// apply priority
             arr[j + 1] = arr[j];
             j = j - 1; 
         } 
@@ -155,11 +145,11 @@ void insertionSort(int arr[])
     } 
 } 
 
-int addCourse(Course c){
+int addCourse(Course c){							// add course and return if success or fail
 	int i, j, day, num, failed = 0;
 	int set[5][2];
 	char d, n;
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++) {						// store changed time slot
 		for (j = 0; j < 2; j++) {
 			set[i][j] = -1;
 		}
@@ -170,44 +160,41 @@ int addCourse(Course c){
 		getCourseTime(&d, &n);
 		day = d - '0';
 		num = n - '0';
-		if (table[day][num] == 0) {
-			table[day][num] = 1;
+		if (table[day][num] == 0) {					// if time slot not taken
+			table[day][num] = 1;					// take it
 			set[i][0] = day;
 			set[i][1] = num;
 		} else {
 			failed = 1;
 		}
 	}
-	if (failed) {
+	if (failed) {									// if there's overlap
 		for (i = 0; i < 5; i++) {
-			if (set[i][0] != -1) {
+			if (set[i][0] != -1) {					// remove slots taken this time
 				table[set[i][0]][set[i][1]] = 0;
 			}
 		}		
-		return 1;
+		return 1;									// and return failed
 	} else {
-		return 0;
+		return 0;									// or return succeed
 	}
 }
 
-void GreedyCourse(void)
+void GreedyCourse(void)								// find optimal schedule
 {
-	int i, cred = 0, Cnum = 0, j;
+	int i, cred = 0, Cnum = 0, j;					// Initialize
 	int Selected[30];
 
-	insertionSort(order);
-/*	for(i = 0; i < N; i++) {
-		printf("%d %g\n", order[i], Clist[order[i]].ratio);
-	}	
-*/
-	for (i = 0; i < N; i++) {
-		if (!addCourse(Clist[order[i]])) {
-			Selected[Cnum] = i;	
-			cred = cred + Clist[order[i]].credict;
-			Cnum++;
+	insertionSort(order);							// sort course with weight
+
+	for (i = 0; i < N; i++) {						// goes through courses
+		if (!addCourse(Clist[order[i]])) {			// if add success
+			Selected[Cnum] = i;						// add course
+			cred = cred + Clist[order[i]].credict;	// calculate credit
+			Cnum++;									// add selected course num
 		}
 	}
-	printf("Total credicts: %d\n", cred);
+	printf("Total credicts: %d\n", cred);			// print result
 	printf("Number of courses selected: %d\n", Cnum);
 	for (i = 0; i < Cnum; i++) {
 		j = order[Selected[i]];
