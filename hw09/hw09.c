@@ -9,33 +9,33 @@
 
 #define MAX_TREE_HT 1000 
 
-struct MinHeapNode { 
+typedef struct sMinHeapNode { 
     char data; 
     unsigned freq; 
-    struct MinHeapNode *left, *right; 
-}; 
+    struct  sMinHeapNode *left, *right; 
+} MinHeapNode;
   
-struct MinHeap { 
+typedef struct sMinHeap { 
     unsigned size; 
     unsigned capacity; 
-    struct MinHeapNode** array; 
-}; 
+     MinHeapNode** array; 
+} MinHeap;
 
 void readInput(void);           			// read all inputs
 void printInput(void);                     	// print Input
-struct MinHeapNode* newNode(char data, unsigned freq);
-struct MinHeap* createMinHeap(unsigned capacity);
-void swapMinHeapNode(struct MinHeapNode** a, struct MinHeapNode** b);
-void minHeapify(struct MinHeap* minHeap, int idx);
-int isSizeOne(struct MinHeap* minHeap);
-struct MinHeapNode* extractMin(struct MinHeap* minHeap);
-void insertMinHeap(struct MinHeap* minHeap, struct MinHeapNode* minHeapNode);
-void buildMinHeap(struct MinHeap* minHeap);
+ MinHeapNode* newNode(char data, unsigned freq);
+ MinHeap* createMinHeap(unsigned capacity);
+void swapMinHeapNode( MinHeapNode** a,  MinHeapNode** b);
+void minHeapify( MinHeap* minHeap, int idx);
+int isSizeOne( MinHeap* minHeap);
+ MinHeapNode* extractMin( MinHeap* minHeap);
+void insertMinHeap( MinHeap* minHeap,  MinHeapNode* minHeapNode);
+void buildMinHeap( MinHeap* minHeap);
 int printArr(int arr[], int n);
-int isLeaf(struct MinHeapNode* root);
-struct MinHeap* createAndBuildMinHeap(char data[], int freq[], int size);  
-struct MinHeapNode* buildHuffmanTree(char data[], int freq[], int size);
-void printCodes(struct MinHeapNode* root, int arr[], int top);
+int isLeaf( MinHeapNode* root);
+ MinHeap* createAndBuildMinHeap(char data[], int freq[], int size);  
+ MinHeapNode* buildHuffmanTree(char data[], int freq[], int size);
+void printCodes( MinHeapNode* root, int arr[], int top);
 void HuffmanCodes(char data[], int freq[], int size); 
 
 char *data;
@@ -94,9 +94,9 @@ void printInput(void)                          // print adjacent list
 	}
 } 
   
-struct MinHeapNode* newNode(char data, unsigned freq) 
+ MinHeapNode* newNode(char data, unsigned freq) 
 { 
-    struct MinHeapNode* temp  = (struct MinHeapNode*)malloc(sizeof(struct MinHeapNode)); 
+     MinHeapNode* temp  = ( MinHeapNode*)malloc(sizeof( MinHeapNode)); 
   
     temp->left = NULL;
 	temp->right = NULL; 
@@ -106,25 +106,25 @@ struct MinHeapNode* newNode(char data, unsigned freq)
     return temp; 
 } 
   
-struct MinHeap* createMinHeap(unsigned capacity) 
+ MinHeap* createMinHeap(unsigned capacity) 
 { 
-    struct MinHeap* minHeap = (struct MinHeap*)malloc(sizeof(struct MinHeap)); 
+     MinHeap* minHeap = ( MinHeap*)malloc(sizeof( MinHeap)); 
   
     minHeap->size = 0; 
     minHeap->capacity = capacity; 
-    minHeap->array = (struct MinHeapNode**)malloc(minHeap->capacity * sizeof(struct MinHeapNode*)); 
+    minHeap->array = ( MinHeapNode**)malloc(minHeap->capacity * sizeof( MinHeapNode*)); 
     
 	return minHeap; 
 } 
   
-void swapMinHeapNode(struct MinHeapNode** a, struct MinHeapNode** b) 
+void swapMinHeapNode( MinHeapNode** a,  MinHeapNode** b) 
 { 
-    struct MinHeapNode* t = *a; 
+     MinHeapNode* t = *a; 
     *a = *b; 
     *b = t; 
 } 
   
-void minHeapify(struct MinHeap* minHeap, int idx) 
+void minHeapify( MinHeap* minHeap, int idx) 
 { 
     int smallest = idx; 
     int left = 2 * idx + 1; 
@@ -142,14 +142,14 @@ void minHeapify(struct MinHeap* minHeap, int idx)
     } 
 } 
   
-int isSizeOne(struct MinHeap* minHeap) 
+int isSizeOne( MinHeap* minHeap) 
 { 
     return (minHeap->size == 1); 
 } 
   
-struct MinHeapNode* extractMin(struct MinHeap* minHeap) 
+ MinHeapNode* extractMin( MinHeap* minHeap) 
 { 
-    struct MinHeapNode* temp = minHeap->array[0]; 
+     MinHeapNode* temp = minHeap->array[0]; 
     minHeap->array[0] = minHeap->array[minHeap->size - 1]; 
   
     --minHeap->size; 
@@ -158,7 +158,7 @@ struct MinHeapNode* extractMin(struct MinHeap* minHeap)
     return temp; 
 } 
   
-void insertMinHeap(struct MinHeap* minHeap, struct MinHeapNode* minHeapNode) 
+void insertMinHeap( MinHeap* minHeap,  MinHeapNode* minHeapNode) 
 { 
     ++minHeap->size; 
     int i = minHeap->size - 1; 
@@ -171,7 +171,7 @@ void insertMinHeap(struct MinHeap* minHeap, struct MinHeapNode* minHeapNode)
     minHeap->array[i] = minHeapNode; 
 } 
   
-void buildMinHeap(struct MinHeap* minHeap) 
+void buildMinHeap( MinHeap* minHeap) 
 { 
   
     int n = minHeap->size - 1; 
@@ -192,15 +192,15 @@ int printArr(int arr[], int n)
 	return b;	
 } 
   
-int isLeaf(struct MinHeapNode* root) 
+int isLeaf( MinHeapNode* root) 
 { 
     return !(root->left) && !(root->right); 
 } 
   
-struct MinHeap* createAndBuildMinHeap(char data[], int freq[], int size)  
+ MinHeap* createAndBuildMinHeap(char data[], int freq[], int size)  
 { 
   
-    struct MinHeap* minHeap = createMinHeap(size); 
+     MinHeap* minHeap = createMinHeap(size); 
   
     for (int i = 0; i < size; ++i) 
         minHeap->array[i] = newNode(data[i], freq[i]); 
@@ -211,11 +211,11 @@ struct MinHeap* createAndBuildMinHeap(char data[], int freq[], int size)
     return minHeap; 
 } 
   
-struct MinHeapNode* buildHuffmanTree(char data[], int freq[], int size) 
+ MinHeapNode* buildHuffmanTree(char data[], int freq[], int size) 
   
 { 
-    struct MinHeapNode *left, *right, *top; 
-    struct MinHeap* minHeap = createAndBuildMinHeap(data, freq, size); 
+     MinHeapNode *left, *right, *top; 
+     MinHeap* minHeap = createAndBuildMinHeap(data, freq, size); 
     
 	while (!isSizeOne(minHeap)) { 
   
@@ -233,7 +233,7 @@ struct MinHeapNode* buildHuffmanTree(char data[], int freq[], int size)
     return extractMin(minHeap); 
 } 
   
-void printCodes(struct MinHeapNode* root, int arr[], int top) 
+void printCodes( MinHeapNode* root, int arr[], int top) 
 { 
 	int i, b;
     if (root->left) { 
@@ -265,7 +265,7 @@ void printCodes(struct MinHeapNode* root, int arr[], int top)
   
 void HuffmanCodes(char data[], int freq[], int size) 
 { 
-    struct MinHeapNode* root = buildHuffmanTree(data, freq, size); 
+     MinHeapNode* root = buildHuffmanTree(data, freq, size); 
   
     int arr[MAX_TREE_HT], top = 0, mod; 
   
