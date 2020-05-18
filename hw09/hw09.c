@@ -7,29 +7,30 @@
 #include <string.h>
 #include <sys/time.h>
 
-typedef struct sNode { 
-    char data; 
-    int freq; 
-    struct sNode *left, *right; 
+typedef struct sNode { 						// store new node
+	char data; 
+	int freq; 
+	struct sNode *left, *right; 
 } Node;
   
-typedef struct sHeap { 
-    int size; 
-    Node** array; 
+typedef struct sHeap { 						// store new heap
+	int size; 
+	Node** array; 
 } Heap;
 
 void readInput(void);           			// read all inputs
 void printInput(void);                     	// print Input
-Node* newNode(char data, int freq);
-void Heapify(Heap* Heap, int idx);
-Node* GetMin(Heap* Heap);
-int printCode(int *code, int n);
-void printCodes(Node* root, int *code, int top);
-void Huff(char *data, int *freq, int size); 
+Node* newNode(char data, int freq);			// initialize a new node
+void Heapify(Heap* Heap, int idx);			// Heapify function
+Heap* HeapSort(Heap* Heap, int n);			// Heap Sort function
+Node* GetMin(Heap* Heap);					// get min from heap and remove it
+Node* BMT(Heap* HeapTree);					// Binary Merge Tree
+void printCodes(Node* root, int *code, int top);	// Print Huff code
+void Huff(char *data, int *freq, int size); 	// Main Huff function
 
-char *data;
-int N, charnum, bitnum = 0;
-int *freq;
+char *data;									// charactor array
+int *freq;									// frequency array
+int N, charnum, bitnum;			// calculate # of characters and bits
 
 int main() 
 { 
@@ -42,28 +43,29 @@ int main()
 
 void readInput(void)            			    // read all inputs
 {
-	char c;
+	char c;										// initialize
 	int i, found = 0;
 	N = 0;
 	charnum = 0;
-	while ((c = getchar()) != EOF) {
-		if (N == 0) {
+	bitnum = 0;
+	while ((c = getchar()) != EOF) {			// before text ends
+		if (N == 0) {							// first text
 			data =	(char *)malloc(1);
 			freq =	(int *)malloc(1);
 			data[0] = c;
 			freq[0] = 1;
 			N++;
-		} else {
+		} else {								// if existed
 			for (i = 0; (i < N); i++) {
-				if (data[i] == c) {
+				if (data[i] == c) {				// store and add frequency
 					found = 1;
 					freq[i]++;
 				} 
 			}
-			if (found == 0) {
+			if (found == 0) {					// if new character
 				data = (char *)realloc((data), (N + 1)* sizeof(char));
 				freq = (int *)realloc((freq), (N + 1)* sizeof(int));
-				data[N] = c;
+				data[N] = c;					// initialize
 				freq[N] = 1;
 				N++;
 			}
@@ -73,7 +75,7 @@ void readInput(void)            			    // read all inputs
 	}
 }
 
-void printInput(void)                          // print adjacent list
+void printInput(void)               // print character and frequency list
 {
 	int i;
 	
@@ -82,140 +84,152 @@ void printInput(void)                          // print adjacent list
 	}
 } 
   
-Node* newNode(char data, int freq) 
-{ 
+Node* newNode(char data, int freq) 			// initialize a new node
+{
 	Node* tmp  = (Node*)malloc(sizeof(Node)); 
   
-    tmp->left = NULL;
+	tmp->left = NULL;
 	tmp->right = NULL; 
-    tmp->data = data; 
-    tmp->freq = freq; 
+	tmp->data = data; 
+	tmp->freq = freq; 
   
-    return tmp; 
+	return tmp; 
 } 
   
-void Heapify(Heap* Heap, int i) 
+void Heapify(Heap* Heap, int i) 			// Heapify function
 { 
-    int s = i; 
-    int left = 2 * i + 1; 
-    int right = 2 * i + 2; 
-    Node* t; 
+	int s = i; 
+	int l = 2 * i + 1; 					// left child
+	int r = 2 * i + 2; 					// right child
+	Node* t; 
   
-    if (left < Heap->size && Heap->array[left]->freq < Heap->array[s]->freq) {
-        s = left; 
+	if (l < Heap->size && Heap->array[l]->freq < Heap->array[s]->freq) {
+		s = l; 							// left smaller
 	}
-    if (right < Heap->size && Heap->array[right]->freq < Heap->array[s]->freq) {
-        s = right; 
+	if (r < Heap->size && Heap->array[r]->freq < Heap->array[s]->freq) {
+		s = r; 							// right smaller
 	}
-    if (s != i) { 
+	if (s != i) { 						// swap with smaller one
 		t = Heap->array[s];
 		Heap->array[s] = Heap->array[i];
 		Heap->array[i] = t;
-        Heapify(Heap, s); 
-    } 
+		Heapify(Heap, s); 				// heapify children
+	} 
 } 
   
-Node* GetMin(Heap* Heap) 
-{ 
-    Node* temp = Heap->array[0]; 
-
-    Heap->array[0] = Heap->array[Heap->size - 1]; 
-    Heap->size--; 
-    Heapify(Heap, 0); 
-  
-    return temp; 
-} 
-  
-int printCode(int *code, int n) 
-{ 
-    int i, b = 0; 
-    for (i = 0; i < n; ++i) { 
-        printf("%d", code[i]); 
-		b++;
+Heap* HeapSort(Heap* Heap, int n)			// calling Heapify
+{	
+	int i;
+	for (i = (n - 1) / 2; i >= 0; i--) {
+		Heapify(Heap, i); 
 	}
-    printf("\n");
-	return b;	
+	return Heap;
+}
+
+Node* GetMin(Heap* Heap) 				// get the minimum node and remove it
+{ 
+	Node* temp = Heap->array[0]; 		// get minimum
+
+	Heap->array[0] = Heap->array[Heap->size - 1];  // get the biggest
+	Heap->size--; 						// remove one
+	Heapify(Heap, 0); 					// Heapify agian
+  
+	return temp; 						// return min
 } 
 
-void printCodes(Node* node, int *code, int top) 
+Node* BMT(Heap* HeapTree)				// Binary Merge Tree function
+{
+	Node *left, *right, *mid; 			// Initialize
+	int m;
+	
+	while (HeapTree->size != 1) { 
+	
+		right = GetMin(HeapTree); 		// get left child
+		left = GetMin(HeapTree); 		// get right child
+  
+		mid = newNode('\0', left->freq + right->freq); 	// create merged node
+		
+		mid->left = left; 				// assign child to merged node
+		mid->right = right; 
+  
+		HeapTree->size++; 
+		m = HeapTree->size - 1; 		// remove 2 element and add 1
+  
+		while (m && mid->freq < HeapTree->array[(m - 1) / 2]->freq) { 
+			HeapTree->array[m] = HeapTree->array[(m - 1) / 2]; 
+			m = (m - 1) / 2;		// find position and insert merged node
+		} 
+		HeapTree->array[m] = mid; 
+	} 
+  
+	return GetMin(HeapTree); 			// return the root of HeapTree
+}
+  
+void printCodes(Node* node, int *code, int top) 	// Print Huff Codes
 { 
-	int i, b;
-    if (!(node->left) && !(node->right)) { 
-		if (node->data == '\n') {
+	int i, b = 0;
+	if (!(node->left) && !(node->right)) { 		// if it is a leaf
+		if (node->data == '\n') {				// start printing
 			printf("  '\\n': "); 	
 		} else if (node->data == ' ') {
 			printf("  ' ': "); 	
 		} else {
 			printf("  %c: ", node->data); 
 		}
-        b = printCode(code, top); 
-		for (i = 0; i < N; i++) {
+
+		for (i = 0; i < top; i++) { 
+			printf("%d", code[i]); 
+			b++;
+		}
+		printf("\n");
+
+		for (i = 0; i < N; i++) {				// calculate # of bits
 			if (data[i] == node->data) {
 				bitnum = bitnum + b * freq[i];	
 			}
 		}
     } 
     
-	if (node->left) { 
-        code[top] = 0; 
-        printCodes(node->left, code, top + 1); 
-    } 
+	if (node->left) { 							// if traverse to left child
+		code[top] = 0; 							// code add 0
+		printCodes(node->left, code, top + 1); 
+	} 
   
-    if (node->right) { 
-        code[top] = 1; 
-        printCodes(node->right, code, top + 1); 
-    }   
+	if (node->right) { 							// if traverse to right child
+		code[top] = 1; 							// code add 1
+		printCodes(node->right, code, top + 1); 
+	}   
 } 
   
-void Huff(char *data, int *freq, int size) 
+void Huff(char *data, int *freq, int size) 			// main Huff function
 { 
-    Heap* HeapTree; 
-    Node *left, *right, *mid, *root; 
-	int n, i, m;
-	int code[100], topNode = 0, mod; 
+	Heap* HeapTree; 								// Initialize a Heap tree
+	Node *root; 									// initialize a root node
+	int i;						
+	int code[100], top = 0, mod; 				// code to store huff codes
 
-    HeapTree = (Heap*)malloc(sizeof(Heap)); 
-    HeapTree->size = size; 
-    HeapTree->array = (Node**)malloc(size * sizeof(Node*)); 
+	HeapTree = (Heap*)malloc(sizeof(Heap)); 		// open space
+	HeapTree->size = size; 
+	HeapTree->array = (Node**)malloc(size * sizeof(Node*)); 
   
-    for (i = 0; i < size; ++i) {
-        HeapTree->array[i] = newNode(data[i], freq[i]); 
+	for (i = 0; i < size; ++i) {					// assigned original array
+		HeapTree->array[i] = newNode(data[i], freq[i]); 
 	}
+	
+	HeapTree = HeapSort(HeapTree, size - 1);		// sort heap array
+ 	
+	root = BMT(HeapTree);							// create binary merge tree
 
-	n = HeapTree->size - 1; 
-  
-    for (i = (n - 1) / 2; i >= 0; i--) {
-        Heapify(HeapTree, i); 
-	}
-    
-	while (HeapTree->size != 1) { 
-        
-		right = GetMin(HeapTree); 
-        left = GetMin(HeapTree); 
-  
-        mid = newNode('\0', left->freq + right->freq); 
-  
-        mid->left = left; 
-        mid->right = right; 
-  
-		HeapTree->size++; 
-		m = HeapTree->size - 1; 
-  
-		while (m && mid->freq < HeapTree->array[(m - 1) / 2]->freq) { 
-			HeapTree->array[m] = HeapTree->array[(m - 1) / 2]; 
-			m = (m - 1) / 2;
-		} 
-		HeapTree->array[m] = mid; 
-    } 
-  
-    root = GetMin(HeapTree); 
-  
 	printf("Huffman coding:\n"); 
-    printCodes(root, code, topNode); 
+
+	printCodes(root, code, top); 					// print huffman codes
+	
 	printf("Number of Chars read: %d\n", charnum);
     mod = bitnum % 8;
     if (mod) mod = 1;
-	printf("  Huffman Coding needs %d bits, %d bytes\n", bitnum, bitnum / 8 + mod);
-	printf("  Ratio = %g%%\n", (float)(bitnum / 8 + mod) / (float)charnum * 100);
+	printf("  Huffman Coding needs %d bits, %d bytes\n", 
+				bitnum, bitnum / 8 + mod);
+	printf("  Ratio = %g%%\n", 
+				(float)(bitnum / 8 + mod) / (float)charnum * 100);
 	
 } 
