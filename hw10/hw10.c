@@ -1,6 +1,6 @@
-// EE3980 HW09 Encoding ASCII Texts
+// EE3980 HW10 Coin Set Design
 // 106061146, Jhao-Ting, Chen
-// 2020/05/14
+// 2020/05/21
 
 #include <stdio.h>
 #include <stdlib.h>
