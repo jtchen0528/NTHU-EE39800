@@ -25,7 +25,7 @@ int main(void)
 //	printCoin(N);i								// print result
 	printf("For coin set {1, 5, 10, 50} the average is %g\n", CoinSol(N));
 
-	for(i = 1; i <= 100; i++) {					// test from 1 ~ 100
+	for(i = p[2]; i <= 100; i++) {					// test from 1 ~ 100
 		p[3] = i;							// give value to 3rd coin
 		getCoin(N);							// get all coins 
 		sum = CoinSol(N);
@@ -43,7 +43,7 @@ int main(void)
 	
 	minCoin = 100.0;
 	
-	for(i = 1; i <= 100; i++) {				// test from 1 ~ 100
+	for(i = p[1]; i <= p[3]; i++) {				// test from 1 ~ 100
 		p[2] = i;							// give value to 2nd coin
 		getCoin(N);							// get all coins
 		sum = CoinSol(N);
@@ -61,9 +61,9 @@ int main(void)
 	
 	minCoin = 100.0;
 	
-	for(i = 1; i <= 100; i++) {				// test from 1 ~ 100
+	for(i = p[1]; i <= 100; i++) {				// test from 1 ~ 100
 		p[2] = i;							// give value to 2nd coin
-		for(j = 1; j <= 100; j++) {			// test from 1 ~ 100
+		for(j = i; j <= 100; j++) {			// test from 1 ~ 100
 			p[3] = j;						// give value to 3rd coin
 			getCoin(N);						// get all coins
 			sum = CoinSol(N);
