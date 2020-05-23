@@ -16,16 +16,16 @@ int *CoinNum, *s;
 int main(void) 
 { 
 	int i, j, mindd, mindd2;			// initialize
-	double minCoin = 100.0, sum;
-	N = 100;
+	double minCoin = 99.0, sum;
+	N = 99;
 	CoinNum = (int *)malloc(N * sizeof(int));	// open spaces
 	s = (int *)malloc(N * sizeof(int));
 
-	getCoin(N);									// get coins for 1 ~ 100
+	getCoin(N);									// get coins for 1 ~ 99
 //	printCoin(N);								// print result
 	printf("For coin set {1, 5, 10, 50} the average is %g\n", CoinSol(N));
 
-	for(i = p[2]; i <= 100; i++) {					// test from 1 ~ 100
+	for(i = p[2]; i <= 99; i++) {					// test from 1 ~ 100
 		p[3] = i;							// give value to 3rd coin
 		getCoin(N);							// get all coins 
 		sum = CoinSol(N);
@@ -41,7 +41,7 @@ int main(void)
 	printf("Coin set {1, 5, 10, %d} has ", mindd); 
 	printf("the minimum average of %g\n", CoinSol(N));
 	
-	minCoin = 100.0;
+	minCoin = 99.0;
 	p[3] = 50;
 	for(i = p[1]; i <= p[3]; i++) {				// test from 1 ~ 100
 		p[2] = i;							// give value to 2nd coin
@@ -59,11 +59,11 @@ int main(void)
 	printf("Coin set {1, 5, %d, 50} has ", mindd); 
 	printf("the minimum average of %g\n", CoinSol(N));
 	
-	minCoin = 100.0;
+	minCoin = 99.0;
 	
-	for(i = p[1]; i <= 100; i++) {				// test from 1 ~ 100
+	for(i = p[1]; i <= 99; i++) {				// test from 1 ~ 100
 		p[2] = i;							// give value to 2nd coin
-		for(j = i; j <= 100; j++) {			// test from 1 ~ 100
+		for(j = i; j <= 99; j++) {			// test from 1 ~ 100
 			p[3] = j;						// give value to 3rd coin
 			getCoin(N);						// get all coins
 			sum = CoinSol(N);
