@@ -22,7 +22,7 @@ int main(void)
 	s = (int *)malloc(N * sizeof(int));
 
 	getCoin(N);									// get coins for 1 ~ 100
-//	printCoin(N);i								// print result
+//	printCoin(N);								// print result
 	printf("For coin set {1, 5, 10, 50} the average is %g\n", CoinSol(N));
 
 	for(i = p[2]; i <= 100; i++) {					// test from 1 ~ 100
@@ -38,11 +38,11 @@ int main(void)
 	p[3] = mindd;							// print result
 	getCoin(N);
 //	printCoin(N);
-	printf("Coin set {1, 5, 10, %d} has", mindd); 
+	printf("Coin set {1, 5, 10, %d} has ", mindd); 
 	printf("the minimum average of %g\n", CoinSol(N));
 	
 	minCoin = 100.0;
-	
+	p[3] = 50;
 	for(i = p[1]; i <= p[3]; i++) {				// test from 1 ~ 100
 		p[2] = i;							// give value to 2nd coin
 		getCoin(N);							// get all coins
@@ -56,7 +56,7 @@ int main(void)
 	p[2] = mindd;							// print result
 	getCoin(N);
 //	printCoin(N);
-	printf("Coin set {1, 5, %d, 50} has", mindd); 
+	printf("Coin set {1, 5, %d, 50} has ", mindd); 
 	printf("the minimum average of %g\n", CoinSol(N));
 	
 	minCoin = 100.0;
@@ -79,7 +79,7 @@ int main(void)
 	p[3] = mindd2;
 	getCoin(N);
 //	printCoin(N);
-	printf("Coin set {1, 5, %d, %d} has", mindd, mindd2); 
+	printf("Coin set {1, 5, %d, %d} has ", mindd, mindd2); 
 	printf("the minimum average of %g\n", CoinSol(N));
 		
 	return 0; 
@@ -92,7 +92,7 @@ void getCoin(int n)				// get all Coin num and save solution
 	s[0] = p[0];
 	for (i = 1; i < n; i++) {				// 1 ~ n coin combinations
 		min = n;
-		for (j = 3; j >= 0; j--) {			// test through coin value 1 ~ 4
+		for (j = 3; j >=0; j--) {			// test through coin value 1 ~ 4
 			if ((i + 1 - p[j]) >= 0) {				// if can use
 				if ((1 + CoinNum[i - p[j]]) < min) {	// if lesser coin #
 					min = 1 + CoinNum[i - p[j]];		// store result
@@ -106,17 +106,19 @@ void getCoin(int n)				// get all Coin num and save solution
 
 void printCoin(int n)
 {
-	int i, j; 
+	int i, j, sum = 0; 
 
 	for (i = 0; i < N; i++) {
 		j = i;
 		printf("%d: %d coins, with:", i + 1, CoinNum[i]);
 		while (j >= 0) {
 			printf(" %d", s[j]);		// print all coins
+			sum++;
 			j = j - s[j];
 		}
 		printf("\n");
 	}
+	printf("sum = %d\n", sum);
 }
 
 double CoinSol(int n) {				// count average
