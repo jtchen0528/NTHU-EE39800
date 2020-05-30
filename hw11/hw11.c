@@ -16,8 +16,8 @@ int **M;
 void readInput(char **argv);			// read all inputs
 void printInput(char **A, int N);		// print the content of array A
 double GetTime(void);					// get local time in seconds
-void WagnerFisher(int n, int m, char **X, char **Y);	// find transform
-void Trace(int n, int m, char **X, char **Y);	// print transform
+void WagnerFisher(int n, int m, char **X, char **Y);	// find transformation
+void Trace(int n, int m, char **X, char **Y);	// print transformation
 
 int main(int argc, char **argv)
 {
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 void readInput(char **argv)				// read all inputs
 {
 	char str[100], c;					// initialize parameters
-	int i, strnum = 0, end;				
+	int i, strnum = 0, end, f = 0;				
 	FILE *file1 = fopen(argv[1],"r");	// read file from arguments
 	FILE *file2 = fopen(argv[2],"r");
 
@@ -59,16 +59,17 @@ void readInput(char **argv)				// read all inputs
 		}
 		data1[strnum][i] = '\n';
 		data1[strnum][i + 1] = '\0';
+		f = 0;
 		strnum++;
 		fscanf(file1, "%c", &c);
 		fscanf(file1, "%c", &c);		// get first char (check \n)
-		if (c == '\n') {
+		if ((c == 13) || (c == 10)) {
 			data1 = (char **)realloc(data1, (strnum + 1) * sizeof(char *));
 			data1[strnum] = (char *)malloc(2 * sizeof(char));
-			data1[strnum][0] = '\n';
+			data1[strnum][0] = c;
 			data1[strnum][1] = '\0';
 			strnum++;
-			fscanf(file1, "%c", &c);
+			fscanf(file1, "\n%c", &c);
 		}
 		end = fscanf(file1, "%[^\n]", str);
 	}
@@ -88,13 +89,13 @@ void readInput(char **argv)				// read all inputs
 		strnum++;
 		fscanf(file2, "%c", &c);
 		fscanf(file2, "%c", &c);		// get first char (check \n)
-		if (c == '\n') {
+		if ((c == 13) || (c == 10)) {
 			data2 = (char **)realloc(data2, (strnum + 1) * sizeof(char *));
 			data2[strnum] = (char *)malloc(2 * sizeof(char));
-			data2[strnum][0] = '\n';
+			data2[strnum][0] = c;
 			data2[strnum][1] = '\0';
 			strnum++;
-			fscanf(file2, "%c", &c);
+			fscanf(file2, "\n%c", &c);
 		}
 		end = fscanf(file2, "%[^\n]", str);
 	}
@@ -103,10 +104,10 @@ void readInput(char **argv)				// read all inputs
 
 void printInput(char **A, int N)       // print the content of array A
 {
-    int i, j;
+    int i;
 	printf("N = %d\n", N);
     for (i = 0; i < N; i++){
-        printf("%s", A[i]);
+        printf("%d: %s", i + 1, A[i]);
     }
 
 }
