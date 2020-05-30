@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 void readInput(char **argv)				// read all inputs
 {
 	char str[100], c;					// initialize parameters
-	int i, strnum = 0, end, f = 0;				
+	int i, strnum = 0, end;				
 	FILE *file1 = fopen(argv[1],"r");	// read file from arguments
 	FILE *file2 = fopen(argv[2],"r");
 
@@ -59,7 +59,6 @@ void readInput(char **argv)				// read all inputs
 		}
 		data1[strnum][i] = '\n';
 		data1[strnum][i + 1] = '\0';
-		f = 0;
 		strnum++;
 		fscanf(file1, "%c", &c);
 		fscanf(file1, "%c", &c);		// get first char (check \n)
