@@ -1,6 +1,6 @@
-// EE3980 HW12 Traveling Salesperson Problem
+// EE3980 HW12 Travelling Salesperson Problem
 // 106061146, 陳兆廷
-// 2020/06/04
+// 2020/06/07
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,40 +10,40 @@
 #define INF 10000
 
 typedef struct sNode {
-	int **path;
-	int **reducedRoute;
-	int cost;
-	int city;
-	int level;
+    int city;
+    int cost;
+    struct sNode *next;
 } Node;
 
-int N;                     // input size
-int **route;					// input route
-char **city; 
-int src;
+int N;
+char **city;
+int **route;
+int *path;
+int *row;
+int *col;
+int distance = INF;
 
-void readInput(void);			// read all inputs
-void printInput();		// print the content of array A
-double GetTime(void);					// get local time in seconds
-int TSP(void);
-Node *newNode(int **parent, int **path, int level, int s, int d);
+double GetTime(void); // get local time in seconds
+void readInput(void); // read texta and textb
+void printInput();       // print the content of array A
+void initLCS(void);
+void LCSearch(int **r, int level, int src, int curr_cost);
 int Cost(int **r);
-void printMat(int **r); 
-Node *copyNode(Node *ori);
+void unCost(int **r);
+Node *FindAllCosts(int **r, int src, int last_cost);
+void printMat(int **r);
 
 int main(void)
 {
-    int i;							// loop index
-    double t;						// for CPU time tracking
+    double t;
 
-    readInput();                // read input dat
-	printInput();
-    t = GetTime();              // initialize time counter
-	TSP();
-    t = GetTime() - t;    // calculate CPU time per iteration
-    printf("CPU time = %g\n", t);        // print out CPU time
-
-    return 0;
+    readInput();
+	//printInput();
+    t = GetTime(); // initialize time counter
+    initLCS();
+    t = (GetTime() - t);
+    printf("CPU time %g\n", t);
+	return 0;
 }
 
 void readInput(void)				// read all inputs
@@ -53,6 +53,9 @@ void readInput(void)				// read all inputs
 	scanf("%d\n", &N);
 	city = (char **)malloc(N * sizeof(char *));
 	route = (int **)malloc(N * sizeof(int *));
+	path = (int *)malloc(N * sizeof(int));
+	row = (int *)malloc(N * sizeof(int));
+	col = (int *)malloc(N * sizeof(int));
 	for (i = 0; i < N; i++) {
 		route[i] = (int *)malloc(N * sizeof(int));
 		scanf("%[^\n]\n", str);
@@ -85,96 +88,182 @@ void printInput()       // print the content of array A
 	}
 }
 
-double GetTime(void)				// get CPU time
-{
-    struct timeval tv;
+double GetTime(void)  // get local time in seconds
+{   
+	struct timeval tv;
 
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec + 1e-6 * tv.tv_usec;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec + 1e-6 * tv.tv_usec;
 }
 
-Node *newNode(int **parent, int **path, int level, int s, int d)
+void LCSearch(int **cost, int level, int src, int curr_cost)
 {
-	int i, j;
-	Node *newnode;
-	
-	newnode = (Node *)malloc(sizeof(Node));
-	
-	newnode->path = (int **)malloc(N * sizeof(int *));
-	for (i = 0; i < N; i++) {
-		newnode->path[i] = (int *)malloc(2 * sizeof(int));
-		newnode->path[i][0] = path[i][0];
-		newnode->path[i][1] = path[i][1];
-//		printf("path %d %d\n", path[i][0], path[i][1]);
-	}
+    int i, j, min;
+    int **routes;
+    Node *child, *min_node, *last_min_node, *node, *last_node;
 
-	newnode->reducedRoute = (int **)malloc(N * sizeof(int *));
-	for (i = 0; i < N; i++) {
-		newnode->reducedRoute[i] = (int *)malloc(N * sizeof(int));
-		for (j = 0; j < N; j++) {
-			newnode->reducedRoute[i][j] = parent[i][j];
+    if (level == N - 1) {
+		path[level] = 0;
+        if (distance > (curr_cost + cost[src][0])) {
+            distance = curr_cost + cost[src][0];
+        }
+		return;
+    } 
+
+    routes = (int **)malloc(N * sizeof(int *));
+    for (i = 0; i < N; i++) {
+        routes[i] = (int *)malloc(N * sizeof(int));
+    }
+
+	child = FindAllCosts(cost, src, curr_cost);
+    while (child != NULL) {
+        min = INF;
+		node = child;
+        while (node != NULL) {
+            if (min > node->cost) {
+                min = node->cost;
+                min_node = node;
+                last_min_node = last_node;
+            }
+			last_node = node;
+			node = node->next;
+        }
+        if (min_node == child)
+            child = child->next;
+        else {
+            last_min_node->next = min_node->next;
+        }
+
+        if (min_node->cost > distance) {
+            return;
 		}
-	}
 
-	for (i = 0; (level != 0) && (i < N); i++) {
-		newnode->reducedRoute[s][i] = INF;
-		newnode->reducedRoute[i][d] = INF;
-	}
-	newnode->reducedRoute[d][0] = INF;
+        for (i = 0; i < N; i++) {
+            for (j = 0; j < N; j++) {
+                if (i == src || j == min_node->city)
+                    routes[i][j] = cost[i][j] + INF;
+                else
+                {
+                    routes[i][j] = cost[i][j];
+                }   
+            }
+        }
+        if (level != N - 2) {
+            routes[min_node->city][0] += INF;
+        }
+		Cost(routes);	
+        path[level] = min_node->city; // record path
+        LCSearch(routes, level + 1, min_node->city, min_node->cost);
+    }
+}
 
-	newnode->level = level;
-	newnode->city = d;
+void initLCS(void)
+{
+    int cr = 0, i, j;
 
-	return newnode;
+    cr = Cost(route);
+    LCSearch(route, 0, 0, cr);
+    printf("Minimum distance route:\n");
+    for (i = 0, j = 0; i < N; i++) {
+        printf(" %s -> %s\n", city[j], city[path[i]]);
+        j = path[i];
+    }
+    printf("Total travelling distance : %d\n", distance);
+}
+
+Node *FindAllCosts(int **r, int src, int last_cost)
+{
+    int i, j;
+    Node *tmp, *root;
+    
+    for (i = 0; i < N; i++) {
+        r[src][i] += INF;
+    }
+
+    root = NULL;
+    for (i = 0; i < N; i++) {
+        if (r[src][i] < 2 * INF) {
+            tmp = (Node *)malloc(sizeof(Node));
+            tmp->city = i;
+            for (j = 0; j < N; j++) {
+                r[j][i] += INF;
+            }
+            r[i][0] += INF;
+            tmp->cost = Cost(r) + r[src][i] - 2 * INF + last_cost;
+            tmp->next = root;
+            root = tmp;
+            unCost(r);
+            r[i][0] -= INF;
+            for (j = 0; j < N; j++) {
+                r[j][i] -= INF;
+            }
+        }
+    }
+    for (i = 0; i < N; i++) {
+        r[src][i] -= INF;
+    }
+    return root;
 }
 
 int Cost(int **r)
 {
-	int cost = 0;
-	int i, j;
-	int *row, *col;
-
-	row = (int *)malloc(N * sizeof(int));
-	col = (int *)malloc(N * sizeof(int));
-
+    int i, j;
+    int min = INF, cost = 0;
+    
 	for (i = 0; i < N; i++) {
-		row[i] = INF;
-	}
-
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			if (r[i][j] < row[i]) row[i] = r[i][j];
+        for (j = 0; j < N; j++) {
+            if (r[i][j] < INF && min > r[i][j]) min = r[i][j];
+        }
+        if (min < INF) {
+			cost += min;
+			row[i] = min;
 		}
-	}
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			if ((r[i][j] !=  INF) && (row[i] != INF)) r[i][j] -= row[i];
+        if (min != 0) {
+            for (j = 0; j < N; j++) {
+                if (r[i][j] < INF) r[i][j] = r[i][j] - min;
+            }
+        }
+		min = INF;
+    }
+
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
+            if (r[j][i] < INF && min > r[j][i])
+                min = r[j][i];
+        }
+        if (min < INF) {
+			cost += min;
+			col[i] = min;
 		}
-	}
+        if (min != 0) {
+            for (j = 0; j < N; j++) {
+                if (r[j][i] < INF) r[j][i] = r[j][i] - min;
+            }
+        }
+		min = INF;
+    }	
+    return cost;
+}
 
-	for (i = 0; i < N; i++) {
-		col[i] = INF;
-	}
+void unCost(int **r)
+{
+    int i, j;
 
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			if (r[i][j] < col[j]) col[j] = r[i][j];
-		}
-	}
+    for (i = 0; i < N; i++) {
+        if (row[i] != 0) {
+            for (j = 0; j < N; j++) {
+                if (r[i][j] < INF) r[i][j] += row[i];
+            }
+        }
+    }
 
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			if ((r[i][j] !=  INF) && (col[j] != INF)) r[i][j] -= col[j];
-		}
-	}
-	for (i = 0; i < N; i++) {
-		if (row[i] != INF) cost += row[i];
-		if (col[i] != INF) cost += col[i];
-	}
-	
-	
-
-	return cost;
+    for (i = 0; i < N; i++) {
+        if (col[i] != 0) {
+            for (j = 0; j < N; j++) {
+                if (r[j][i] < INF) r[j][i] += col[i];
+            }
+        }
+    }
 }
 
 void printMat(int **r) 
@@ -188,89 +277,3 @@ void printMat(int **r)
 	}
 }
 
-Node *copyNode(Node *ori)
-{
-	int i, j;
-	Node *n;
-	n = (Node *)malloc(sizeof(Node));
-	n->reducedRoute = (int **)malloc(N * sizeof(int *));
-	n->path = (int **)malloc(N * sizeof(int *));
-	n->level = ori->level;
-	n->city = ori->city;
-	n->cost = ori->cost;
-	for (i = 0; i < N; i++) {
-		n->reducedRoute[i] = (int *)malloc(N * sizeof(int));
-		for (j = 0; j < N; j++) {
-			n->reducedRoute[i][j] = ori->reducedRoute[i][j];
-		}
-	}
-	for (i = 0; i < N; i++) {
-		n->path[i] = (int *)malloc(2 * sizeof(int));
-		n->path[i][0] = ori->path[i][0];
-		n->path[i][1] = ori->path[i][1];
-	}
-	return n;
-}
-
-int TSP(void)
-{
-	int i, j, min = INF, d, pqnum = 0;
-	int **path;
-	Node **pq;
-	Node *current;
-
-	path = (int **)malloc(N * sizeof(int *));
-	pq = (Node **)malloc(sizeof(Node *));
-
-	for (i = 0; i < N; i++) {
-		path[i] = (int *)malloc(2 * sizeof(int));
-		path[i][0] = -1;
-		path[i][1] = -1;
-	}
-	
-	Node *root = newNode(route, path, 0, -1, 0);
-
-	root->cost = Cost(root->reducedRoute);
-	printf("%d\n", root->cost);
-	
-	current = root;
-	while(current->level != N)
-//	for (j = 0; j < 3; j++)
-	{
-		int city = current->city;
-		if (current->level == N - 1) {
-			current->path[current->level][0] = city;
-			current->path[current->level][1] = src;
-			current->level++;
-			return current->cost;
-		}
-		printMat(current->reducedRoute);
-		printf("current cost %d\n", current->cost);
-		for (i = 0; i < N; i++) {
-			if (current->reducedRoute[city][i] != INF) {
-				Node *child = newNode(current->reducedRoute, current->path, current->level + 1, city, i);
-				printMat(child->reducedRoute);
-				child->cost = current->cost + current->reducedRoute[city][i] + Cost(child->reducedRoute);
-				pq = (Node **)realloc(pq, (pqnum + 1) * sizeof(Node *));
-				pq[pqnum] = child;
-				pqnum++;
-			}
-		}
-		Node *tmp;
-		for (i = 0; i < pqnum; i++) {
-			if (pq[i]->cost < min) {
-				min = pq[i]->cost;
-				tmp = pq[i];
-				d = i;
-			}
-		}
-		min = INF;
-		current = copyNode(tmp);
-		for (i = d; i < pqnum - 1; i++) {
-			pq[i] = pq[i] + 1;
-		}
-		pqnum--;
-		printf("%d to %d cost %d level %d\n", city, current->city, current->cost, current->level);	
-	}
-
-}
