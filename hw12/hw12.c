@@ -27,7 +27,7 @@ void printMat(int **r);				// print current matrix r
 void TravelingSalesman(int src);				// main function 
 void LCSearch(int **r, int level, int src, int curr_cost);	// LCSearch
 Node *FindAllCosts(int **r, int src, int last_cost);	// find a list with all costs
-int Cost(int **r);					// calculate cost
+int Cost(int **r, int mode);					// calculate cost
 
 int main(void)
 {
@@ -35,7 +35,7 @@ int main(void)
     readInput();
 //	printInput();
     t = GetTime();					// initialize time counter
-    TravelingSalesman(1);
+    TravelingSalesman(0);
     t = (GetTime() - t);
 	printf("CPU time %g\n", t);
 	return 0;
@@ -108,7 +108,8 @@ void TravelingSalesman(int src)				// main function
     int i, curr_cost;
 	distance = INF;
 	start = src;							// starts at city 0
-    curr_cost = Cost(route);
+    curr_cost = Cost(route, 1);
+    // printMat(route);
     LCSearch(route, 0, src, curr_cost);
     printf("Minimum distance route:\n %s -> ", city[src]);
     for (i = 0; i < N - 1; i++) {
@@ -163,98 +164,103 @@ void LCSearch(int **r, int level, int src, int curr_cost)	// LCSearch for TSP
         for (i = 0; i < N; i++) {			// set up next route table
             for (j = 0; j < N; j++) {
                 if ((j == min_node->city) || (i == src)) {
-                    new_r[i][j] = r[i][j] + INF;
+                    new_r[i][j] = INF;
 				}
                 else {
                     new_r[i][j] = r[i][j];
                 }   
             }
         }
-        new_r[min_node->city][src] += INF;
+        new_r[min_node->city][src] = INF;
 
-		Cost(new_r);						// calculate next cost
+		Cost(new_r, 1);						// calculate next cost
         path[level] = min_node->city;		// store path
         LCSearch(new_r, level + 1, min_node->city, min_node->cost);	// next level
+        for (i = 0; i < N; i++) {			// set up next route table
+            for (j = 0; j < N; j++) {
+                new_r[i][j] = r[i][j];
+            }
+        }
     }
 }
 
 Node *FindAllCosts(int **r, int src, int last_cost)	// find all costs of the level
 {
-    int i, j, k, *path_cost;				
+    int i, j, k, *path_cost, *col_cost, point;				
     Node *tmp, *root;
     
 	path_cost = (int *)malloc(N * sizeof(int));		// store this level distances
+	col_cost = (int *)malloc(N * sizeof(int));		// store this level distances
     for (i = 0; i < N; i++) {
 		path_cost[i] = r[src][i];
-        r[src][i] += INF;						// init route table
+        r[src][i] = INF;						// init route table
     }
 
     root = NULL;
     for (i = 0; i < N; i++) {
-        if (r[src][i] < 2 * INF) {
+        if (path_cost[i] < INF) {
             tmp = (Node *)malloc(sizeof(Node));
             tmp->city = i;
             for (j = 0; j < N; j++) {
-                r[j][i] += INF;
+                col_cost[j] = r[j][i];
+                r[j][i] = INF;
             }
-            r[i][src] += INF;					// calculate costs
-            tmp->cost = Cost(r) + last_cost + path_cost[i];
+            point = r[i][src];
+            r[i][src] = INF;					// calculate costs
+            // printMat(r);
+            tmp->cost = Cost(r, 0) + last_cost + path_cost[i];
+            // printf("%d\n", tmp->cost);
             tmp->next = root;
             root = tmp;
-			for (j = 0; j < N; j++) {			// restore route table
-				for (k = 0; k < N; k++) {
-					if (r[j][k] < INF) r[j][k] += row[j];
-				}
-			}
-			for (j = 0; j < N; j++) {
-				for (k = 0; k < N; k++) {
-					if (r[k][j] < INF) r[k][j] += col[j];
-				}
-			}
-            r[i][src] -= INF;
+            r[i][src] = point;
             for (j = 0; j < N; j++) {
-                r[j][i] -= INF;
+                r[j][i] = col_cost[j];
             }
+            // printMat(r);
         }
     }
     for (i = 0; i < N; i++) {
-        r[src][i] -= INF;
+        r[src][i] = path_cost[i];
     }
     return root;						// return list
 }
 
-int Cost(int **r)						// calculate cost
+int Cost(int **r, int mode)						// calculate cost
 {
     int i, j;
     int min = INF, cost = 0;
     
 	for (i = 0; i < N; i++) {			// find min in row
         for (j = 0; j < N; j++) {
-            if (r[i][j] < INF && min > r[i][j]) min = r[i][j];
+            if (r[i][j] != INF && min > r[i][j]) min = r[i][j];
         }
-        if (min < INF) {
+        if (min != INF) {
 			cost += min;
 			row[i] = min;
 		}
-		for (j = 0; j < N; j++) {
-			if (r[i][j] < INF && min != 0) r[i][j] = r[i][j] - min;
-		}
+        if (mode) {
+		    for (j = 0; j < N; j++) {
+			    if (r[i][j] != INF) r[i][j] = r[i][j] - min;
+		    }
+        }
 		min = INF;
     }
 
     for (i = 0; i < N; i++) {			// find min in col
         for (j = 0; j < N; j++) {
-            if (r[j][i] < INF && min > r[j][i])
-                min = r[j][i];
+            if (r[j][i] != INF && min > r[j][i]) min = r[j][i];
         }
-        if (min < INF) {
+        if (min != INF) {
 			cost += min;
 			col[i] = min;
 		}
-		for (j = 0; j < N; j++) {
-			if (r[j][i] < INF && min != 0) r[j][i] = r[j][i] - min;
-		}
+        if (mode) {
+		    for (j = 0; j < N; j++) {
+		    	if (r[j][i] < INF) r[j][i] = r[j][i] - min;
+		    }
+        }
 		min = INF;
     }	
+    // printf("cost = %d\n", cost);
     return cost;
 }
