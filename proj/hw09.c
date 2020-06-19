@@ -35,7 +35,7 @@ int N, charnum, bitnum;			// calculate # of characters and bits
 int main() 
 { 
 	readInput();
-	printInput();
+	// printInput();
     Huff(data, freq, N); 
   
     return 0; 
@@ -114,12 +114,13 @@ Node* newNode(char *data, int freq) 			// initialize a new node
 {
 	int i;
 	Node* tmp  = (Node*)malloc(sizeof(Node)); 
-	tmp->data = (char *)malloc(strlen(data) * sizeof(char));
+	tmp->data = (char *)malloc((strlen(data) + 1) * sizeof(char));
 	tmp->left = NULL;
 	tmp->right = NULL; 
 	for (i = 0; i < strlen(data); i++) {
 		tmp->data[i] = data[i];
 	}
+	tmp->data[i] = '\0';
 	tmp->freq = freq; 
   
 	return tmp; 
@@ -201,7 +202,13 @@ void printCodes(Node* node, int *code, int top) 	// Print Huff Codes
 { 
 	int i, b = 0;
 	if (!(node->left) && !(node->right)) { 		// if it is a leaf
-		printf("  %s: ", node->data); 
+		if (node->data[0] == '\n'){
+			printf("  '\\n': ");
+		} else if (node->data[0] == ' ') {
+			printf("  ' ': ");
+		} else {
+			printf("  %s: ", node->data);
+		}
 
 		for (i = 0; i < top; i++) { 
 			printf("%d", code[i]); 
@@ -229,7 +236,7 @@ void printCodes(Node* node, int *code, int top) 	// Print Huff Codes
 } 
   
 void Huff(char **data, int *freq, int size) 			// main Huff function
-{ 
+{
 	Heap* HeapTree; 								// Initialize a Heap tree
 	Node *root; 									// initialize a root node
 	int i;						
@@ -238,13 +245,13 @@ void Huff(char **data, int *freq, int size) 			// main Huff function
 	HeapTree = (Heap*)malloc(sizeof(Heap)); 		// open space
 	HeapTree->size = size; 
 	HeapTree->array = (Node**)malloc(size * sizeof(Node*)); 
-  
+
 	for (i = 0; i < size; ++i) {					// assigned original array
 		HeapTree->array[i] = newNode(data[i], freq[i]); 
 	}
 	
 	HeapTree = HeapSort(HeapTree, size - 1);		// sort heap array
- 	
+
 	root = BMT(HeapTree);							// create binary merge tree
 
 	printf("Huffman coding:\n"); 
